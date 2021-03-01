@@ -1,0 +1,13 @@
+
+# MODULES
+node_modules
+
+
+# BUILD
+dist
+
+# ENVS
+.env
+
+# Migrations
+src/migrations
