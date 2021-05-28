@@ -1,13 +1,12 @@
+// Modules
+import { productQueries, productMutation, productSchema } from "./products";
+
 // Libraries
 import { gql } from "apollo-server-express";
 
-// Types
-import { productSchema } from "./product";
-
 export const schema = gql`
+  # Products
   ${productSchema}
-
-  type Query {
-    products: [Product]
-  }
+  ${productQueries}
+  ${productMutation}
 `;

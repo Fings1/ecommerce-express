@@ -1,9 +1,8 @@
 // Libraries
 import express from "express";
-import { PrismaClient } from "@prisma/client";
-
 import bodyParser from "body-parser";
-import { ApolloServer, gql } from "apollo-server-express";
+import { ApolloServer } from "apollo-server-express";
+import { createConnection } from "typeorm";
 
 // Constants
 import constants from "./constants";
@@ -11,45 +10,40 @@ import constants from "./constants";
 // Schemas
 import { schema } from "./schema";
 
-// Prisma init
-const prisma = new PrismaClient();
+// Resolvers
+import resolvers from "./resolvers";
 
 const app = express();
 
-// Set app configuration
-// app.use(cors());
-// app.use(helmet());
 app.use(bodyParser.json());
 
-// Set graphql configuration
-// app.use(
-//   "/graphql",
-//   graphqlHTTP({
-//     schema,
-//     context: prisma,
-//   })
-// );
-
-// app.get("/playground", playground({ endpoint: "/graphql" }));
-// GRAPHQL
-
-// Construct a schema, using GraphQL schema language
-
-// Provide resolver functions for your schema fields
-const resolvers = {
-  Query: {
-    products: () => [],
-  },
-};
-
-app.get("/", (req, res) => {
+// Default healthcheck endpoint
+app.get("/healthcheck", (req, res) => {
   return res.send("OK").status(200);
 });
 
+// Set apollo config
 const server = new ApolloServer({ typeDefs: schema, resolvers });
 
 server.applyMiddleware({ app, path: "/graphql" });
 
-app.listen(constants.APP_PORT, () => {
-  console.log(`SERVER RUNNING IN  ${constants.APP_PORT}`);
-});
+// Connection DB
+createConnection({
+  type: "postgres",
+  host: constants.DB_HOST,
+  port: constants.DB_PORT,
+  username: constants.DB_USER,
+  password: constants.DB_PASSWORD,
+  database: constants.DB_NAME,
+  entities: ["src/entities/*.ts"],
+  synchronize: true,
+})
+  .then((connection) => {
+    // Init express app
+    app.listen(constants.APP_PORT, () => {
+      console.log(`SERVER RUNNING IN  ${constants.APP_PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error(error);
+  });
